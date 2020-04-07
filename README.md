@@ -15,8 +15,13 @@ pros of pool:
 # installation
 
 ```bash
-go get -u github.com/golang/dep/cmd/dep
-dep ensure
+docker-compose up
+```
+
+You can now access via http://localhost:8080. Create a short URL with:
+
+```
+curl -d "longurl=http://www.cloudflare.com" -X POST http://localhost:8080/create
 ```
 
 # future

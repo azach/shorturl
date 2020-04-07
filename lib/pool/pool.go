@@ -8,20 +8,39 @@ import (
 	"sync"
 )
 
-const minPoolSize = 3
-const minPoolGenerationSize = 1
-const idAlphabet = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+// These can be tuned according to scalability/performance needs
+const defaultMinPoolSize = 100
+const defaultMinPoolGenerationSize = 10
 
-type Pool struct {
-	mux   sync.Mutex
-	queue []string
-	cache cache.Cache
+type Options struct {
+	minPoolSize           int
+	minPoolGenerationSize int
 }
 
-func NewPool(cache cache.Cache) *Pool {
+type Pool struct {
+	mux                   sync.Mutex
+	queue                 []string
+	cache                 cache.Cache
+	minPoolSize           int
+	minPoolGenerationSize int
+}
+
+func NewPool(cache cache.Cache, options *Options) *Pool {
+	minPoolSize := defaultMinPoolSize
+	if options.minPoolSize > 0 {
+		minPoolSize = options.minPoolSize
+	}
+
+	minPoolGenerationSize := defaultMinPoolGenerationSize
+	if options.minPoolGenerationSize > 0 {
+		minPoolGenerationSize = options.minPoolGenerationSize
+	}
+
 	return &Pool{
-		queue: []string{},
-		cache: cache,
+		queue:                 []string{},
+		cache:                 cache,
+		minPoolSize:           minPoolSize,
+		minPoolGenerationSize: minPoolGenerationSize,
 	}
 }
 
@@ -35,8 +54,8 @@ func (p *Pool) Get() string {
 }
 
 func (p *Pool) Generate() {
-	if len(p.queue) < minPoolSize {
-		numToGenerate := int(math.Min(float64(minPoolGenerationSize), float64(minPoolSize-len(p.queue))))
+	if len(p.queue) < p.minPoolSize {
+		numToGenerate := int(math.Min(float64(p.minPoolGenerationSize), float64(p.minPoolSize-len(p.queue))))
 
 		for i := 0; i < numToGenerate; i++ {
 			candidate, err := shortid.Generate()
@@ -45,13 +64,13 @@ func (p *Pool) Generate() {
 				continue
 			}
 
-			logrus.Infof("created candidate: %s %v", candidate, len(p.queue))
-
 			_, exists := p.cache.Get(candidate)
 			if exists {
 				logrus.Infof("candidate already exists %s", candidate)
 				continue
 			}
+
+			logrus.Infof("created candidate: %s %v", candidate, len(p.queue))
 
 			p.queue = append(p.queue, candidate)
 		}

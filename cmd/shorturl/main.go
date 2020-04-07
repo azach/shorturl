@@ -31,8 +31,8 @@ type shortURLHandler struct {
 func main() {
 	r := mux.NewRouter()
 
-	urlCache := cache.NewMemoryCache()
-	urlPool := pool.NewPool(urlCache)
+	urlCache := cache.NewRedisCache()
+	urlPool := pool.NewPool(urlCache, &pool.Options{})
 
 	shortURLHandler := &shortURLHandler{
 		urlCache: urlCache,
