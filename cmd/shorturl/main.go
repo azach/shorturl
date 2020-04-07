@@ -2,10 +2,11 @@ package main
 
 import (
 	"encoding/json"
-	"flag"
 	"fmt"
 	"net/http"
 	"net/url"
+	"os"
+	"time"
 
 	"github.com/azach/shorturl/lib/cache"
 	"github.com/azach/shorturl/lib/pool"
@@ -13,15 +14,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 )
-
-var (
-	port string
-)
-
-func init() {
-	flag.StringVar(&port, "port", "8080", "web service port")
-	flag.Parse()
-}
 
 type shortURLHandler struct {
 	urlCache cache.Cache
@@ -51,8 +43,8 @@ func main() {
 
 	r.HandleFunc("/{cache:\\w+}", shortURLHandler.Get)
 
-	svcPort := fmt.Sprintf(":%s", port)
-	logrus.Infof("running service on port %s", port)
+	svcPort := fmt.Sprintf(":%s", os.Getenv("PORT"))
+	logrus.Infof("running service on port %s", svcPort)
 	logrus.Fatal(http.ListenAndServe(svcPort, r))
 }
 
@@ -88,7 +80,16 @@ func (h *shortURLHandler) Get(w http.ResponseWriter, r *http.Request) {
 	longURL, found := h.urlCache.Get(shortURL)
 
 	if found {
+		now := time.Now()
+		h.urlCache.Hit(shortURL, now)
 		logrus.Infof("redirecting short url: %s", shortURL)
+		hits, err := h.urlCache.GetHits(shortURL, now, cache.Minute)
+		if err != nil {
+			logrus.Errorf("error getting hits: %s", err)
+		} else {
+			logrus.Infof("total hits: %v", hits)
+		}
+
 		http.Redirect(w, r, longURL, http.StatusSeeOther)
 		return
 	}

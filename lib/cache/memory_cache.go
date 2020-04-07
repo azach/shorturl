@@ -3,6 +3,7 @@ package cache
 import (
 	"errors"
 	"fmt"
+	"time"
 )
 
 type MemoryCache struct {
@@ -30,4 +31,12 @@ func (c *MemoryCache) Set(key string, value string) error {
 func (c *MemoryCache) Get(key string) (value string, exists bool) {
 	value, exists = c.items[key]
 	return value, exists
+}
+
+func (c *MemoryCache) Hit(key string, viewedAt time.Time) {
+	return
+}
+
+func (c *MemoryCache) GetHits(key string, asOf time.Time, hitRange HitRange) (int64, error) {
+	return 0, nil
 }

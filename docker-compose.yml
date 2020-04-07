@@ -10,6 +10,7 @@ services:
     depends_on:
       - redis
     environment:
+      PORT: 8080
       REDIS_URL: redis:6379
     networks:
       - backend

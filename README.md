@@ -29,3 +29,4 @@ curl -d "longurl=http://www.cloudflare.com" -X POST http://localhost:8080/create
 * validate long urls (redirect loops, etc)
 * dedicated background workers for pool generation
 * sharding on lexigraphic order of shorturl
+* prune old counters
