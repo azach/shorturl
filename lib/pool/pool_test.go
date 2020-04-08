@@ -9,7 +9,7 @@ import (
 
 func TestPool(t *testing.T) {
 	memStorage := storage.NewMemoryStorage()
-	pool := NewPool(memStorage, &Options{minPoolSize: 2, minPoolGenerationSize: 0})
+	pool := NewPool(memStorage, &Options{MinPoolSize: 2, MinPoolGenerationSize: 0})
 
 	// Empty pool should still generate a value
 	assert.NotEqual(t, "", pool.Get())
@@ -18,7 +18,7 @@ func TestPool(t *testing.T) {
 	pool.Get()
 	assert.Equal(t, 0, len(pool.queue))
 
-	// Generate should replenish pool to minPoolSize
+	// Generate should replenish pool to MinPoolSize
 	pool.Generate()
 	assert.Equal(t, 2, len(pool.queue))
 

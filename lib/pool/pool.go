@@ -14,8 +14,8 @@ const defaultMinPoolSize = 100
 const defaultMinPoolGenerationSize = 0
 
 type Options struct {
-	minPoolSize           int
-	minPoolGenerationSize int
+	MinPoolSize           int
+	MinPoolGenerationSize int
 }
 
 type Pool struct {
@@ -28,13 +28,13 @@ type Pool struct {
 
 func NewPool(storage storage.Storage, options *Options) *Pool {
 	minPoolSize := defaultMinPoolSize
-	if options.minPoolSize > 0 {
-		minPoolSize = options.minPoolSize
+	if options.MinPoolSize > 0 {
+		minPoolSize = options.MinPoolSize
 	}
 
 	minPoolGenerationSize := defaultMinPoolGenerationSize
-	if options.minPoolGenerationSize > 0 {
-		minPoolGenerationSize = options.minPoolGenerationSize
+	if options.MinPoolGenerationSize > 0 {
+		minPoolGenerationSize = options.MinPoolGenerationSize
 	}
 
 	return &Pool{
