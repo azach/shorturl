@@ -1,16 +1,17 @@
 package pool
 
 import (
-	"github.com/azach/shorturl/lib/cache"
-	"github.com/sirupsen/logrus"
-	"github.com/teris-io/shortid"
 	"math"
 	"sync"
+
+	"github.com/azach/shorturl/lib/storage"
+	"github.com/sirupsen/logrus"
+	"github.com/teris-io/shortid"
 )
 
 // These can be tuned according to scalability/performance needs
 const defaultMinPoolSize = 100
-const defaultMinPoolGenerationSize = 10
+const defaultMinPoolGenerationSize = 0
 
 type Options struct {
 	minPoolSize           int
@@ -20,12 +21,12 @@ type Options struct {
 type Pool struct {
 	mux                   sync.Mutex
 	queue                 []string
-	cache                 cache.Cache
+	storage               storage.Storage
 	minPoolSize           int
 	minPoolGenerationSize int
 }
 
-func NewPool(cache cache.Cache, options *Options) *Pool {
+func NewPool(storage storage.Storage, options *Options) *Pool {
 	minPoolSize := defaultMinPoolSize
 	if options.minPoolSize > 0 {
 		minPoolSize = options.minPoolSize
@@ -38,7 +39,7 @@ func NewPool(cache cache.Cache, options *Options) *Pool {
 
 	return &Pool{
 		queue:                 []string{},
-		cache:                 cache,
+		storage:               storage,
 		minPoolSize:           minPoolSize,
 		minPoolGenerationSize: minPoolGenerationSize,
 	}
@@ -48,6 +49,10 @@ func (p *Pool) Get() string {
 	p.mux.Lock()
 	defer p.mux.Unlock()
 
+	if len(p.queue) == 0 {
+		p.Generate()
+	}
+
 	candidate := p.queue[0]
 	p.queue = p.queue[1:]
 	return candidate
@@ -55,7 +60,7 @@ func (p *Pool) Get() string {
 
 func (p *Pool) Generate() {
 	if len(p.queue) < p.minPoolSize {
-		numToGenerate := int(math.Min(float64(p.minPoolGenerationSize), float64(p.minPoolSize-len(p.queue))))
+		numToGenerate := int(math.Max(float64(p.minPoolGenerationSize), float64(p.minPoolSize-len(p.queue))))
 
 		for i := 0; i < numToGenerate; i++ {
 			candidate, err := shortid.Generate()
@@ -64,7 +69,7 @@ func (p *Pool) Generate() {
 				continue
 			}
 
-			_, exists := p.cache.Get(candidate)
+			_, exists := p.storage.Get(candidate)
 			if exists {
 				logrus.Infof("candidate already exists %s", candidate)
 				continue

@@ -1,4 +1,4 @@
-package cache
+package storage
 
 import (
 	"testing"
@@ -6,29 +6,29 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestMemoryCache(t *testing.T) {
-	cache := NewMemoryCache()
+func TestMemoryStorage(t *testing.T) {
+	storage := NewMemoryStorage()
 
 	// Test getting value that hasn't been set
-	_, exists := cache.Get("foo")
+	_, exists := storage.Get("foo")
 	assert.False(t, exists)
 
 	// Test setting value
-	err := cache.Set("foo", "bar")
+	err := storage.Set("foo", "bar")
 	assert.NoError(t, err)
 
 	// Test getting back value
-	value, exists := cache.Get("foo")
+	value, exists := storage.Get("foo")
 	assert.True(t, exists)
 	assert.Equal(t, "bar", value)
 
 	// Test case sensitivity
-	_, exists = cache.Get("Foo")
+	_, exists = storage.Get("Foo")
 	assert.False(t, exists)
-	err = cache.Set("Foo", "baz")
+	err = storage.Set("Foo", "baz")
 	assert.NoError(t, err)
 
-	value, exists = cache.Get("Foo")
+	value, exists = storage.Get("Foo")
 	assert.True(t, exists)
 	assert.Equal(t, "baz", value)
 }

@@ -1,4 +1,4 @@
-package cache
+package storage
 
 import (
 	"github.com/sirupsen/logrus"
@@ -14,7 +14,7 @@ const (
 	Minute
 )
 
-type Cache interface {
+type Storage interface {
 	Get(key string) (value string, exists bool)
 	Set(key string, value string) error
 	Hit(key string, viewedAt time.Time)
